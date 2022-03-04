@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/s-yadav/iv-viewer.git"
+    "url": "git+https://github.com/Alexandar9/iv-viewer.git"
   },
   "keywords": [
     "image",
@@ -17,9 +17,9 @@
   "author": "Sudhanshu Yadav",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/s-yadav/iv-viewer/issues"
+    "url": "https://github.com/Alexandar9/iv-viewer/issues"
   },
-  "homepage": "https://github.com/s-yadav/iv-viewer#readme",
+  "homepage": "https://github.com/Alexandar9/iv-viewer#readme",
   "scripts": {
     "start": "yarn copy-assets & parcel example/index.html --out-dir temp",
     "copy-assets": "cp -R example/ temp",
