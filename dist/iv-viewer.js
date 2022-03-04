@@ -522,8 +522,8 @@
           x: containerDim.w / 2,
           y: containerDim.h / 2
         };
-        var curLeft = parseFloat(css(image, 'left'));
-        var curTop = parseFloat(css(image, 'top')); // clear any panning frames
+        var curLeft = parseFloat(css(image, "left"));
+        var curTop = parseFloat(css(image, "top")); // clear any panning frames
 
         _this._clearFrames();
 
@@ -602,8 +602,8 @@
             snapImageDim = _state.snapImageDim;
         var imageWidth = imgWidth || imageDim.w * zoomValue / 100;
         var imageHeight = imgHeight || imageDim.h * zoomValue / 100;
-        var imageLeft = imgLeft || parseFloat(css(image, 'left'));
-        var imageTop = imgTop || parseFloat(css(image, 'top'));
+        var imageLeft = imgLeft || parseFloat(css(image, "left"));
+        var imageTop = imgTop || parseFloat(css(image, "top"));
         var left = -imageLeft * snapImageDim.w / imageWidth;
         var top = -imageTop * snapImageDim.h / imageHeight;
         var handleWidth = containerDim.w * snapImageDim.w / imageWidth;
@@ -632,7 +632,7 @@
         _this._state.snapViewVisible = true;
         css(snapView, {
           opacity: 1,
-          pointerEvents: 'inherit'
+          pointerEvents: "inherit"
         });
 
         if (!noTimeout) {
@@ -644,7 +644,7 @@
         var snapView = _this._elements.snapView;
         css(snapView, {
           opacity: 0,
-          pointerEvents: 'none'
+          pointerEvents: "none"
         });
         _this._state.snapViewVisible = false;
       });
@@ -696,17 +696,17 @@
     _createClass(ImageViewer, [{
       key: "zoomInButton",
       get: function get() {
-        return this._options.hasZoomButtons ? "<div class=\"iv-button-zoom--in\" role=\"button\"></div>" : '';
+        return this._options.hasZoomButtons ? "<div class=\"iv-button-zoom--in\" role=\"button\"></div>" : "";
       }
     }, {
       key: "zoomOutButton",
       get: function get() {
-        return this._options.hasZoomButtons ? "<div class=\"iv-button-zoom--out\" role=\"button\"></div>" : '';
+        return this._options.hasZoomButtons ? "<div class=\"iv-button-zoom--out\" role=\"button\"></div>" : "";
       }
     }, {
       key: "imageViewHtml",
       get: function get() {
-        return "\n    <div class=\"iv-loader\"></div>\n    <div class=\"iv-snap-view\">\n      <div class=\"iv-snap-image-wrap\">\n        <div class=\"iv-snap-handle\"></div>\n      </div>\n      <div class=\"iv-zoom-actions ".concat(this._options.hasZoomButtons ? 'iv-zoom-actions--has-buttons' : '', "\">\n        ").concat(this.zoomInButton, "\n        <div class=\"iv-zoom-slider\">\n          <div class=\"iv-zoom-handle\"></div>\n        </div>\n        ").concat(this.zoomOutButton, "\n      </div>\n    </div>\n    <div class=\"iv-image-view\" >\n      <div class=\"iv-image-wrap\" ></div>\n    </div>\n  ");
+        return "\n    <div class=\"iv-loader\"></div>\n    <div class=\"iv-snap-view\">\n      <div class=\"iv-snap-image-wrap\">\n        <div class=\"iv-snap-handle\"></div>\n      </div>\n      <div class=\"iv-zoom-actions ".concat(this._options.hasZoomButtons ? "iv-zoom-actions--has-buttons" : "", "\">\n        ").concat(this.zoomInButton, "\n        <div class=\"iv-zoom-slider\">\n          <div class=\"iv-zoom-handle\"></div>\n        </div>\n        ").concat(this.zoomOutButton, " \n      </div>\n    </div>\n    <div class=\"iv-image-view\" >\n      <div class=\"iv-image-wrap\" ></div>\n    </div>\n  ");
       }
     }, {
       key: "_findContainerAndImageSrc",
@@ -714,37 +714,37 @@
         var domElement = element;
         var imageSrc, hiResImageSrc;
 
-        if (typeof element === 'string') {
+        if (typeof element === "string") {
           domElement = document.querySelector(element);
         } // throw error if imageViewer is already assigned
 
 
         if (domElement._imageViewer) {
-          throw new Error('An image viewer is already being initiated on the element.');
+          throw new Error("An image viewer is already being initiated on the element.");
         }
 
         var container = element;
 
-        if (domElement.tagName === 'IMG') {
+        if (domElement.tagName === "IMG") {
           imageSrc = domElement.src;
-          hiResImageSrc = domElement.getAttribute('high-res-src') || domElement.getAttribute('data-high-res-src'); // wrap the image with iv-container div
+          hiResImageSrc = domElement.getAttribute("high-res-src") || domElement.getAttribute("data-high-res-src"); // wrap the image with iv-container div
 
           container = wrap(domElement, {
-            className: 'iv-container iv-image-mode',
+            className: "iv-container iv-image-mode",
             style: {
-              display: 'inline-block',
-              overflow: 'hidden'
+              display: "inline-block",
+              overflow: "hidden"
             }
           }); // hide the image and add iv-original-img class
 
           css(domElement, {
             opacity: 0,
-            position: 'relative',
+            position: "relative",
             zIndex: -1
           });
         } else {
-          imageSrc = domElement.getAttribute('src') || domElement.getAttribute('data-src');
-          hiResImageSrc = domElement.getAttribute('high-res-src') || domElement.getAttribute('data-high-res-src');
+          imageSrc = domElement.getAttribute("src") || domElement.getAttribute("data-src");
+          hiResImageSrc = domElement.getAttribute("high-res-src") || domElement.getAttribute("data-high-res-src");
         }
 
         return {
@@ -785,29 +785,29 @@
         var container = this._elements.container; // add image-viewer layout elements
 
         createElement({
-          tagName: 'div',
-          className: 'iv-wrap',
+          tagName: "div",
+          className: "iv-wrap",
           html: this.imageViewHtml,
           parent: container
         }); // add container class on the container
 
-        addClass(container, 'iv-container'); // if the element is static position, position it relatively
+        addClass(container, "iv-container"); // if the element is static position, position it relatively
 
-        if (css(container, 'position') === 'static') {
+        if (css(container, "position") === "static") {
           css(container, {
-            position: 'relative'
+            position: "relative"
           });
         } // save references for later use
 
 
         this._elements = _objectSpread2(_objectSpread2({}, this._elements), {}, {
-          snapView: container.querySelector('.iv-snap-view'),
-          snapImageWrap: container.querySelector('.iv-snap-image-wrap'),
-          imageWrap: container.querySelector('.iv-image-wrap'),
-          snapHandle: container.querySelector('.iv-snap-handle'),
-          zoomHandle: container.querySelector('.iv-zoom-handle'),
-          zoomIn: container.querySelector('.iv-button-zoom--in'),
-          zoomOut: container.querySelector('.iv-button-zoom--out')
+          snapView: container.querySelector(".iv-snap-view"),
+          snapImageWrap: container.querySelector(".iv-snap-image-wrap"),
+          imageWrap: container.querySelector(".iv-image-wrap"),
+          snapHandle: container.querySelector(".iv-snap-handle"),
+          zoomHandle: container.querySelector(".iv-zoom-handle"),
+          zoomIn: container.querySelector(".iv-button-zoom--in"),
+          zoomOut: container.querySelector(".iv-button-zoom--out")
         });
 
         if (this._listeners.onInit) {
@@ -915,8 +915,8 @@
             var _this3$_frames = _this3._frames,
                 slideMomentumCheck = _this3$_frames.slideMomentumCheck,
                 sliderMomentumFrame = _this3$_frames.sliderMomentumFrame;
-            startHandleTop = parseFloat(css(snapHandle, 'top'));
-            startHandleLeft = parseFloat(css(snapHandle, 'left')); // stop momentum on image
+            startHandleTop = parseFloat(css(snapHandle, "top"));
+            startHandleLeft = parseFloat(css(snapHandle, "left")); // stop momentum on image
 
             clearInterval(slideMomentumCheck);
             cancelAnimationFrame(sliderMomentumFrame);
@@ -960,7 +960,7 @@
             snapView = _this$_elements.snapView,
             zoomHandle = _this$_elements.zoomHandle; // zoom in zoom out using zoom handle
 
-        var sliderElm = snapView.querySelector('.iv-zoom-slider');
+        var sliderElm = snapView.querySelector(".iv-zoom-slider");
         var leftOffset, handleWidth; // on zoom slider we have to follow the mouse and set the handle to its position.
 
         var zoomSlider = new Slider(sliderElm, {
@@ -970,7 +970,7 @@
           onStart: function onStart(eStart) {
             var slider = _this4._sliders.zoomSlider;
             leftOffset = sliderElm.getBoundingClientRect().left + document.body.scrollLeft;
-            handleWidth = parseInt(css(zoomHandle, 'width'), 10); // move the handle to current mouse position
+            handleWidth = parseInt(css(zoomHandle, "width"), 10); // move the handle to current mouse position
 
             slider.onMove(eStart);
           },
@@ -994,7 +994,7 @@
 
 
         if (this._options.refreshOnResize) {
-          this._events.onWindowResize = assignEvent(window, 'resize', this.refresh);
+          this._events.onWindowResize = assignEvent(window, "resize", this.refresh);
         }
       }
     }, {
@@ -1006,17 +1006,17 @@
             imageWrap = _this$_elements2.imageWrap,
             snapView = _this$_elements2.snapView; // show snapView on mouse move
 
-        this._events.snapViewOnMouseMove = assignEvent(imageWrap, ['touchmove', 'mousemove'], function () {
+        this._events.snapViewOnMouseMove = assignEvent(imageWrap, ["touchmove", "mousemove"], function () {
           _this5.showSnapView();
         }); // keep showing snapView if on hover over it without any timeout
 
-        this._events.mouseEnterSnapView = assignEvent(snapView, ['mouseenter', 'touchstart'], function () {
+        this._events.mouseEnterSnapView = assignEvent(snapView, ["mouseenter", "touchstart"], function () {
           _this5._state.snapViewVisible = false;
 
           _this5.showSnapView(true);
         }); // on mouse leave set timeout to hide snapView
 
-        this._events.mouseLeaveSnapView = assignEvent(snapView, ['mouseleave', 'touchend'], function () {
+        this._events.mouseLeaveSnapView = assignEvent(snapView, ["mouseleave", "touchend"], function () {
           _this5._state.snapViewVisible = false;
 
           _this5.showSnapView();
@@ -1029,10 +1029,10 @@
         var _this$_elements3 = this._elements,
             zoomOut = _this$_elements3.zoomOut,
             zoomIn = _this$_elements3.zoomIn;
-        this._events.zoomInClick = assignEvent(zoomIn, ['click'], function () {
+        this._events.zoomInClick = assignEvent(zoomIn, ["click"], function () {
           _this5.zoom(_this5._state.zoomValue + _this5._options.zoomStep || 50);
         });
-        this._events.zoomOutClick = assignEvent(zoomOut, ['click'], function () {
+        this._events.zoomOutClick = assignEvent(zoomOut, ["click"], function () {
           _this5.zoom(_this5._state.zoomValue - _this5._options.zoomStep || 50);
         });
       }
@@ -1091,11 +1091,11 @@
           if (events.pinchMove) events.pinchMove();
           if (events.pinchEnd) events.pinchEnd(); // assign events
 
-          events.pinchMove = assignEvent(document, 'touchmove', moveListener);
-          events.pinchEnd = assignEvent(document, 'touchend', endListener);
+          events.pinchMove = assignEvent(document, "touchmove", moveListener);
+          events.pinchEnd = assignEvent(document, "touchend", endListener);
         };
 
-        this._events.pinchStart = assignEvent(imageWrap, 'touchstart', onPinchStart);
+        this._events.pinchStart = assignEvent(imageWrap, "touchstart", onPinchStart);
       }
     }, {
       key: "_scrollZoom",
@@ -1142,7 +1142,7 @@
           _this7.showSnapView();
         };
 
-        this._ev = assignEvent(imageWrap, 'wheel', onMouseWheel);
+        this._ev = assignEvent(imageWrap, "wheel", onMouseWheel);
       }
     }, {
       key: "_doubleTapToZoom",
@@ -1174,7 +1174,7 @@
           }
         };
 
-        assignEvent(imageWrap, 'click', onDoubleTap);
+        assignEvent(imageWrap, "click", onDoubleTap);
       }
     }, {
       key: "_getImageCurrentDim",
@@ -1199,21 +1199,21 @@
         var container = _elements.container,
             snapImageWrap = _elements.snapImageWrap,
             imageWrap = _elements.imageWrap;
-        var ivLoader = container.querySelector('.iv-loader'); // remove old images
+        var ivLoader = container.querySelector(".iv-loader"); // remove old images
 
-        remove(container.querySelectorAll('.iv-snap-image, .iv-image')); // add snapView image
+        remove(container.querySelectorAll(".iv-snap-image, .iv-image")); // add snapView image
 
         var snapImage = createElement({
-          tagName: 'img',
-          className: 'iv-snap-image',
+          tagName: "img",
+          className: "iv-snap-image",
           src: imageSrc,
           insertBefore: snapImageWrap.firstChild,
           parent: snapImageWrap
         }); // add image
 
         var image = createElement({
-          tagName: 'img',
-          className: 'iv-image iv-small-image',
+          tagName: "img",
+          className: "iv-image iv-small-image",
           src: imageSrc,
           parent: imageWrap
         });
@@ -1222,11 +1222,11 @@
         this._elements.image = image;
         this._elements.snapImage = snapImage;
         css(ivLoader, {
-          display: 'block'
+          display: "block"
         }); // keep visibility hidden until image is loaded
 
         css(image, {
-          visibility: 'hidden'
+          visibility: "hidden"
         }); // hide snap view if open
 
         this.hideSnapView();
@@ -1234,11 +1234,11 @@
         var onImageLoad = function onImageLoad() {
           // hide the iv loader
           css(ivLoader, {
-            display: 'none'
+            display: "none"
           }); // show the image
 
           css(image, {
-            visibility: 'visible'
+            visibility: "visible"
           }); // load high resolution image if provided
 
           if (hiResImageSrc) {
@@ -1262,7 +1262,7 @@
         if (imageLoaded(image)) {
           onImageLoad();
         } else {
-          this._events.imageLoad = assignEvent(image, 'load', onImageLoad);
+          this._events.imageLoad = assignEvent(image, "load", onImageLoad);
         }
       }
     }, {
@@ -1275,15 +1275,15 @@
             container = _this$_elements6.container;
         var lowResImg = this._elements.image;
         var hiResImage = createElement({
-          tagName: 'img',
-          className: 'iv-image iv-large-image',
+          tagName: "img",
+          className: "iv-image iv-large-image",
           src: hiResImageSrc,
           parent: imageWrap,
           style: lowResImg.style.cssText
         }); // add all the style attributes from lowResImg to highResImg
 
         hiResImage.style.cssText = lowResImg.style.cssText;
-        this._elements.image = container.querySelectorAll('.iv-image');
+        this._elements.image = container.querySelectorAll(".iv-image");
 
         var onHighResImageLoad = function onHighResImageLoad() {
           // remove the low size image and set this image as default image
@@ -1294,7 +1294,7 @@
         if (imageLoaded(hiResImage)) {
           onHighResImageLoad();
         } else {
-          this._events.hiResImageLoad = assignEvent(hiResImage, 'load', onHighResImageLoad);
+          this._events.hiResImageLoad = assignEvent(hiResImage, "load", onHighResImageLoad);
         }
       }
     }, {
@@ -1307,10 +1307,10 @@
             snapImage = _this$_elements7.snapImage,
             zoomHandle = _this$_elements7.zoomHandle; // calculate content width of image and snap image
 
-        var imageWidth = parseInt(css(image, 'width'), 10);
-        var imageHeight = parseInt(css(image, 'height'), 10);
-        var contWidth = parseInt(css(container, 'width'), 10);
-        var contHeight = parseInt(css(container, 'height'), 10);
+        var imageWidth = parseInt(css(image, "width"), 10);
+        var imageHeight = parseInt(css(image, "height"), 10);
+        var contWidth = parseInt(css(container, "width"), 10);
+        var contHeight = parseInt(css(container, "height"), 10);
         var snapViewWidth = snapView.clientWidth;
         var snapViewHeight = snapView.clientHeight; // set the container dimension
 
@@ -1334,8 +1334,8 @@
           height: "".concat(imgHeight, "px"),
           left: "".concat((contWidth - imgWidth) / 2, "px"),
           top: "".concat((contHeight - imgHeight) / 2, "px"),
-          maxWidth: 'none',
-          maxHeight: 'none'
+          maxWidth: "none",
+          maxHeight: "none"
         }); // set the snap Image dimension
 
         var snapWidth = imgWidth > imgHeight ? snapViewWidth : imgWidth * snapViewHeight / imgHeight;
@@ -1348,7 +1348,7 @@
           width: "".concat(snapWidth, "px"),
           height: "".concat(snapHeight, "px")
         });
-        var zoomSlider = snapView.querySelector('.iv-zoom-slider').clientWidth; // calculate zoom slider area
+        var zoomSlider = snapView.querySelector(".iv-zoom-slider").clientWidth; // calculate zoom slider area
 
         this._state.zoomSliderLength = zoomSlider - zoomHandle.offsetWidth;
       }
@@ -1400,11 +1400,11 @@
         this._clearFrames(); // remove html from the container
 
 
-        remove(container.querySelector('.iv-wrap')); // remove iv-container class from container
+        remove(container.querySelector(".iv-wrap")); // remove iv-container class from container
 
-        removeClass(container, 'iv-container'); // remove added style from container
+        removeClass(container, "iv-container"); // remove added style from container
 
-        removeCss(document.querySelector('html'), 'relative'); // if container has original image, unwrap the image and remove the class
+        removeCss(document.querySelector("html"), "relative"); // if container has original image, unwrap the image and remove the class
         // which will happen when domElement is not the container
 
         if (domElement !== container) {
