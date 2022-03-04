@@ -1,5 +1,5 @@
 {
-  "name": "iv-viewer",
+  "name": "@Alexandar9/iv-viewer",
   "version": "2.1.1",
   "description": "A zooming and panning plugin inspired by google photos for your web images.",
   "main": "lib/index.js",
@@ -14,7 +14,7 @@
     "google",
     "photos"
   ],
-  "author": "Sudhanshu Yadav",
+  "author": "Alexandar",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Alexandar9/iv-viewer/issues"
