@@ -1,4 +1,4 @@
-# iv-viewer
+# iv-viewer (FORKED)
 
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 A zooming and panning plugin inspired by google photos for your web images.
