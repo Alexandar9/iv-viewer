@@ -1,7 +1,7 @@
 /**
- * iv-viewer - 2.1.1
- * Author : Sudhanshu Yadav
- * Copyright (c) 2019, 2022 to Sudhanshu Yadav, released under the MIT license.
+ * @alexandar9/iv-viewer - 2.2.1
+ * Author : Alexandar
+ * Copyright (c) 2019, 2022 to Alexandar, released under the MIT license.
  * git+https://github.com/Alexandar9/iv-viewer.git
  */
 
@@ -403,9 +403,9 @@ var Slider = /*#__PURE__*/function () {
       var moveHandler = _this.moveHandler,
           endHandler = _this.endHandler,
           onStart = _this.onStart;
-      var isTouchEvent = eStart.type === 'touchstart' || eStart.type === 'touchend';
-      _this.touchMoveEvent = isTouchEvent ? 'touchmove' : 'mousemove';
-      _this.touchEndEvent = isTouchEvent ? 'touchend' : 'mouseup';
+      var isTouchEvent = eStart.type === "touchstart" || eStart.type === "touchend";
+      _this.touchMoveEvent = isTouchEvent ? "touchmove" : "mousemove";
+      _this.touchEndEvent = isTouchEvent ? "touchend" : "mouseup";
       _this.sx = isTouchEvent ? eStart.touches[0].clientX : eStart.clientX;
       _this.sy = isTouchEvent ? eStart.touches[0].clientY : eStart.clientY;
       onStart(eStart, {
@@ -421,7 +421,7 @@ var Slider = /*#__PURE__*/function () {
         https://bugs.chromium.org/p/chromium/issues/detail?id=506801
       */
 
-      document.addEventListener('contextmenu', endHandler);
+      document.addEventListener("contextmenu", endHandler);
     });
 
     _defineProperty(this, "moveHandler", function (eMove) {
@@ -430,7 +430,8 @@ var Slider = /*#__PURE__*/function () {
       var sx = _this.sx,
           sy = _this.sy,
           onMove = _this.onMove;
-      var isTouchEvent = _this.touchMoveEvent === 'touchmove'; // get the coordinates
+      console.log("move");
+      var isTouchEvent = _this.touchMoveEvent === "touchmove"; // get the coordinates
 
       var mx = isTouchEvent ? eMove.touches[0].clientX : eMove.clientX;
       var my = isTouchEvent ? eMove.touches[0].clientY : eMove.clientY;
@@ -465,14 +466,14 @@ var Slider = /*#__PURE__*/function () {
       if (!this.touchMoveEvent) return;
       document.removeEventListener(this.touchMoveEvent, this.moveHandler);
       document.removeEventListener(this.touchEndEvent, this.endHandler);
-      document.removeEventListener('contextmenu', this.endHandler);
+      document.removeEventListener("contextmenu", this.endHandler);
     }
   }, {
     key: "init",
     value: function init() {
       var _this2 = this;
 
-      ['touchstart', 'mousedown'].forEach(function (evt) {
+      ["touchstart", "mousedown"].forEach(function (evt) {
         _this2.container.addEventListener(evt, _this2.startHandler);
       });
     }
@@ -481,7 +482,7 @@ var Slider = /*#__PURE__*/function () {
     value: function destroy() {
       var _this3 = this;
 
-      ['touchstart', 'mousedown'].forEach(function (evt) {
+      ["touchstart", "mousedown"].forEach(function (evt) {
         _this3.container.removeEventListener(evt, _this3.startHandler);
       });
       this.removeListeners();
@@ -851,10 +852,13 @@ var ImageViewer = /*#__PURE__*/function () {
           var imageCurrentDim = _this2._getImageCurrentDim();
 
           currentPos = position;
-          snapSlider.onMove(e, {
+          var newPos = {
             dx: -position.dx * snapImageDim.w / imageCurrentDim.w,
             dy: -position.dy * snapImageDim.h / imageCurrentDim.h
-          });
+          };
+          snapSlider.onMove(e, newPos);
+
+          _this2._moveHandler(newPos);
         },
         onEnd: function onEnd() {
           var snapImageDim = _this2._state.snapImageDim;
@@ -940,6 +944,8 @@ var ImageViewer = /*#__PURE__*/function () {
             left: "".concat(imgLeft, "px"),
             top: "".concat(imgTop, "px")
           });
+
+          _this3._moveHandler();
         }
       });
       snapSlider.init();
@@ -1359,6 +1365,15 @@ var ImageViewer = /*#__PURE__*/function () {
       this.zoom(zoomValue);
     }
   }, {
+    key: "_moveHandler",
+    value: function _moveHandler(positions) {
+      this._state.positions = positions;
+
+      if (this._listeners.onMove) {
+        this._listeners.onMove(this._callbackData);
+      }
+    }
+  }, {
     key: "load",
     value: function load(imageSrc, hiResImageSrc) {
       this._images = {
@@ -1425,7 +1440,8 @@ var ImageViewer = /*#__PURE__*/function () {
         zoomValue: this._state.zoomValue,
         reachedMin: Math.round(this._state.zoomValue) === this._options.zoomValue,
         reachedMax: Math.round(this._state.zoomValue) === this._options.maxZoom,
-        instance: this
+        instance: this,
+        positions: this._state.positions
       };
     }
   }]);
@@ -1445,7 +1461,8 @@ ImageViewer.defaults = {
     onInit: null,
     onDestroy: null,
     onImageLoaded: null,
-    onZoomChange: null
+    onZoomChange: null,
+    onMove: null
   }
 };
 
@@ -1464,12 +1481,12 @@ var FullScreenViewer = /*#__PURE__*/function (_ImageViewer) {
     _classCallCheck(this, FullScreenViewer);
 
     var fullScreenElem = createElement({
-      tagName: 'div',
-      className: 'iv-fullscreen',
+      tagName: "div",
+      className: "iv-fullscreen",
       html: fullScreenHtml,
       parent: document.body
     });
-    var container = fullScreenElem.querySelector('.iv-fullscreen-container'); // call the ImageViewer constructor
+    var container = fullScreenElem.querySelector(".iv-fullscreen-container"); // call the ImageViewer constructor
 
     _this = _super.call(this, container, _objectSpread2(_objectSpread2({}, options), {}, {
       refreshOnResize: false
@@ -1478,10 +1495,10 @@ var FullScreenViewer = /*#__PURE__*/function (_ImageViewer) {
     _defineProperty(_assertThisInitialized(_this), "hide", function () {
       // hide the fullscreen
       css(_this._elements.fullScreen, {
-        display: 'none'
+        display: "none"
       }); // enable scroll
 
-      removeCss(document.querySelector('html'), 'overflow'); // remove window event
+      removeCss(document.querySelector("html"), "overflow"); // remove window event
 
       _this._events.onWindowResize();
     });
@@ -1497,16 +1514,16 @@ var FullScreenViewer = /*#__PURE__*/function (_ImageViewer) {
     key: "_initFullScreenEvents",
     value: function _initFullScreenEvents() {
       var fullScreen = this._elements.fullScreen;
-      var closeBtn = fullScreen.querySelector('.iv-fullscreen-close'); // add close button event
+      var closeBtn = fullScreen.querySelector(".iv-fullscreen-close"); // add close button event
 
-      this._events.onCloseBtnClick = assignEvent(closeBtn, 'click', this.hide);
+      this._events.onCloseBtnClick = assignEvent(closeBtn, "click", this.hide);
     }
   }, {
     key: "show",
     value: function show(imageSrc, hiResImageSrc) {
       // show the element
       css(this._elements.fullScreen, {
-        display: 'block'
+        display: "block"
       }); // if image source is provide load image source
 
       if (imageSrc) {
@@ -1514,10 +1531,10 @@ var FullScreenViewer = /*#__PURE__*/function (_ImageViewer) {
       } // handle window resize
 
 
-      this._events.onWindowResize = assignEvent(window, 'resize', this.refresh); // disable scroll on html
+      this._events.onWindowResize = assignEvent(window, "resize", this.refresh); // disable scroll on html
 
-      css(document.querySelector('html'), {
-        overflow: 'hidden'
+      css(document.querySelector("html"), {
+        overflow: "hidden"
       });
     }
   }, {
