@@ -245,11 +245,20 @@ class ImageViewer {
         const { snapSlider } = this._sliders;
         const imageCurrentDim = this._getImageCurrentDim();
         currentPos = position;
-
-        snapSlider.onMove(e, {
+        const newPos = {
           dx: (-position.dx * snapImageDim.w) / imageCurrentDim.w,
           dy: (-position.dy * snapImageDim.h) / imageCurrentDim.h,
-        });
+        };
+
+        snapSlider.onMove(e, newPos);
+
+        console.error("event: ", e);
+        console.error("newpos: ", newPos);
+
+        this._moveHandler(
+          this._state.imageCurrentDim,
+          this._state.snapCurrentDim
+        );
       },
       onEnd: () => {
         const { snapImageDim } = this._state;
@@ -347,6 +356,8 @@ class ImageViewer {
           left: `${imgLeft}px`,
           top: `${imgTop}px`,
         });
+
+        // this._moveHandler({ left: imgLeft, top: imgTop }, { l: left, t: top });
       },
     });
 
@@ -882,6 +893,27 @@ class ImageViewer {
         top: `${newTop}px`,
       });
 
+      this._zoomHandler({
+        height: imgHeight,
+        width: imgWidth,
+        left: newLeft,
+        top: newTop,
+      });
+
+      // this._state.snapCurrentDim = {
+      //   height: imgHeight,
+      //   width: imgWidth,
+      //   left: newLeft,
+      //   top: newTop,
+      // };
+
+      // this._state.imageCurrentDim = {
+      //   height: imgHeight,
+      //   width: imgWidth,
+      //   left: newLeft,
+      //   top: newTop,
+      // };
+
       this._state.zoomValue = tickZoom;
 
       this._resizeSnapHandle(imgWidth, imgHeight, newLeft, newTop);
@@ -899,6 +931,24 @@ class ImageViewer {
 
     zoom();
   };
+
+  _zoomHandler(imageDimension, snapDimension) {
+    this._state.snapCurrentDim = snapDimension;
+    this._state.imageCurrentDim = imageDimension;
+
+    if (this._listeners.onMove) {
+      this._listeners.onMove(this._callbackData);
+    }
+  }
+
+  _moveHandler(imageDimension, snapDimension) {
+    this._state.snapCurrentDim = snapDimension;
+    this._state.imageCurrentDim = imageDimension;
+
+    if (this._listeners.onMove) {
+      this._listeners.onMove(this._callbackData);
+    }
+  }
 
   _clearFrames = () => {
     const { slideMomentumCheck, sliderMomentumFrame, zoomFrame } = this._frames;
@@ -933,8 +983,88 @@ class ImageViewer {
     this._state.snapHandleDim = {
       w: handleWidth,
       h: handleHeight,
+      t: top,
+      l: left,
     };
   };
+
+  updateImage = (imageDimension, snapDimension) => {
+    // if (!imageDimension || !snapDimension) {
+    //   return;
+    // }
+
+    const { imageCurrentDim } = this._state;
+    const { _elements } = this;
+    const { image, snapHandle } = _elements;
+
+    const snap = {
+      ...this._state.snapHandleDim,
+      ...snapDimension,
+    };
+
+    const img = {
+      ...this._state.imageCurrentDim,
+      ...imageDimension,
+    };
+
+    css(image, {
+      height: `${img.height}px`,
+      width: `${img.width}px`,
+      left: `${img.left}px`,
+      top: `${img.top}px`,
+    });
+
+    css(snapHandle, {
+      height: `${snap.h}px`,
+      width: `${snap.w}px`,
+      left: `${snap.l}px`,
+      top: `${snap.t}px`,
+    });
+
+    if (imageCurrentDim) {
+      this._resizeSnapHandle(
+        imageCurrentDim.width,
+        imageCurrentDim.height,
+        imageCurrentDim.left,
+        imageCurrentDim.top
+      );
+    }
+  };
+
+  updateSnapHandle(params) {
+    // if (!params) {
+    //   return;
+    // }
+    // const { _elements } = this;
+    // const { snapHandle } = _elements;
+    // css(snapHandle, {
+    //   top: `${params.t}px`,
+    //   left: `${params.l}px`,
+    //   width: `${params.w}px`,
+    //   height: `${params.h}px`,
+    // });
+  }
+
+  /**
+   * @description On movement image
+   * @param {*} snap
+   * @param {*} img
+   */
+  updateSnapHandleAndImageMvt(dimensions) {
+    // if (!dimensions) {
+    //   return;
+    // }
+    // const { _elements } = this;
+    // const { snapHandle, image } = _elements;
+    // css(snapHandle, {
+    //   left: `${dimensions.left}px`,
+    //   top: `${dimensions.top}px`,
+    // });
+    // css(image, {
+    //   left: `${dimensions.imgLeft}px`,
+    //   top: `${dimensions.imgTop}px`,
+    // });
+  }
 
   showSnapView = (noTimeout) => {
     const { snapViewVisible, zoomValue, loaded } = this._state;
@@ -1024,6 +1154,7 @@ class ImageViewer {
       reachedMin: Math.round(this._state.zoomValue) === this._options.zoomValue,
       reachedMax: Math.round(this._state.zoomValue) === this._options.maxZoom,
       instance: this,
+      positions: this._state.positions,
     };
   }
 }
@@ -1041,6 +1172,8 @@ ImageViewer.defaults = {
     onDestroy: null,
     onImageLoaded: null,
     onZoomChange: null,
+    onMove: null,
+    onSnapMove: null,
   },
 };
 
