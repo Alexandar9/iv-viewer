@@ -557,19 +557,15 @@ var ImageViewer = /*#__PURE__*/function () {
           width: "".concat(imgWidth, "px"),
           left: "".concat(newLeft, "px"),
           top: "".concat(newTop, "px")
-        });
+        }); // * Calling custom zoomHandler
+        // console.log(imgHeight, imgWidth, newLeft, newTop);
 
         _this._zoomHandler({
           height: imgHeight,
           width: imgWidth,
           left: newLeft,
           top: newTop
-        }); // this._state.snapCurrentDim = {
-        //   height: imgHeight,
-        //   width: imgWidth,
-        //   left: newLeft,
-        //   top: newTop,
-        // };
+        }, zoomSliderLength); // * override imageCurrentDim
         // this._state.imageCurrentDim = {
         //   height: imgHeight,
         //   width: imgWidth,
@@ -578,6 +574,7 @@ var ImageViewer = /*#__PURE__*/function () {
         // };
 
 
+        console.log("TICK ZOOM: ", tickZoom);
         _this._state.zoomValue = tickZoom;
 
         _this._resizeSnapHandle(imgWidth, imgHeight, newLeft, newTop); // update zoom handle position
@@ -636,18 +633,30 @@ var ImageViewer = /*#__PURE__*/function () {
       };
     });
 
-    _defineProperty(this, "updateImage", function (imageDimension, snapDimension) {
-      // if (!imageDimension || !snapDimension) {
-      //   return;
-      // }
-      var imageCurrentDim = _this._state.imageCurrentDim;
+    _defineProperty(this, "updateImage", function (event) {
+      var _event$instance, _event$instance$_stat, _event$instance2, _event$instance2$_sta;
+
+      if (!event) {
+        return;
+      }
+
+      _this._state.imageCurrentDim = (_event$instance = event.instance) === null || _event$instance === void 0 ? void 0 : (_event$instance$_stat = _event$instance._state) === null || _event$instance$_stat === void 0 ? void 0 : _event$instance$_stat.imageCurrentDim;
+      _this._state.zoomValue = (_event$instance2 = event.instance) === null || _event$instance2 === void 0 ? void 0 : (_event$instance2$_sta = _event$instance2._state) === null || _event$instance2$_sta === void 0 ? void 0 : _event$instance2$_sta.zoomValue;
+      var EventState = event.instance._state;
+      var _options = event.instance._options;
+      var EventImageCurrentDim = EventState.imageCurrentDim,
+          EventSnapHandleDim = EventState.snapHandleDim;
+      var _this$_state = _this._state,
+          imageCurrentDim = _this$_state.imageCurrentDim,
+          snapHandleDim = _this$_state.snapHandleDim;
       var _elements = _this._elements;
       var image = _elements.image,
-          snapHandle = _elements.snapHandle;
+          snapHandle = _elements.snapHandle,
+          zoomHandle = _elements.zoomHandle;
 
-      var snap = _objectSpread2(_objectSpread2({}, _this._state.snapHandleDim), snapDimension);
+      var snap = _objectSpread2(_objectSpread2({}, snapHandleDim), EventSnapHandleDim);
 
-      var img = _objectSpread2(_objectSpread2({}, _this._state.imageCurrentDim), imageDimension);
+      var img = _objectSpread2(_objectSpread2({}, imageCurrentDim), EventImageCurrentDim);
 
       css(image, {
         height: "".concat(img.height, "px"),
@@ -660,18 +669,25 @@ var ImageViewer = /*#__PURE__*/function () {
         width: "".concat(snap.w, "px"),
         left: "".concat(snap.l, "px"),
         top: "".concat(snap.t, "px")
-      });
+      }); // if (imageCurrentDim) {
+      //   this._resizeSnapHandle(
+      //     imageCurrentDim.width,
+      //     imageCurrentDim.height,
+      //     imageCurrentDim.left,
+      //     imageCurrentDim.top
+      //   );
+      // }
 
-      if (imageCurrentDim) {
-        _this._resizeSnapHandle(imageCurrentDim.width, imageCurrentDim.height, imageCurrentDim.left, imageCurrentDim.top);
-      }
+      css(zoomHandle, {
+        left: "".concat((EventState.zoomValue - 100) * EventState.zoomSliderLengthValue / (_options.maxZoom - 100), "px")
+      });
     });
 
     _defineProperty(this, "showSnapView", function (noTimeout) {
-      var _this$_state = _this._state,
-          snapViewVisible = _this$_state.snapViewVisible,
-          zoomValue = _this$_state.zoomValue,
-          loaded = _this$_state.loaded;
+      var _this$_state2 = _this._state,
+          snapViewVisible = _this$_state2.snapViewVisible,
+          zoomValue = _this$_state2.zoomValue,
+          loaded = _this$_state2.loaded;
       var snapView = _this._elements.snapView;
       if (!_this._options.snapView) return;
       if (snapViewVisible || zoomValue <= 100 || !loaded) return;
@@ -723,7 +739,11 @@ var ImageViewer = /*#__PURE__*/function () {
     this._sliders = {}; // maintain current state
 
     this._state = {
-      zoomValue: this._options.zoomValue
+      zoomValue: this._options.zoomValue,
+      onMoveValues: {
+        imageSlider: null,
+        snapSlider: null
+      }
     };
     this._images = {
       imageSrc: imageSrc,
@@ -909,10 +929,12 @@ var ImageViewer = /*#__PURE__*/function () {
             dy: -position.dy * snapImageDim.h / imageCurrentDim.h
           };
           snapSlider.onMove(e, newPos);
-          console.error("event: ", e);
-          console.error("newpos: ", newPos);
+          _this2._state.onMoveValues.imageSlider = newPos;
+          _this2._state.onMoveValues.snapSlider = _objectSpread2({}, newPos);
 
-          _this2._moveHandler(_this2._state.imageCurrentDim, _this2._state.snapCurrentDim);
+          if (_this2._listeners.onMoveImageSlider) {
+            _this2._listeners.onMoveImageSlider(_this2._callbackData);
+          }
         },
         onEnd: function onEnd() {
           var snapImageDim = _this2._state.snapImageDim;
@@ -947,6 +969,8 @@ var ImageViewer = /*#__PURE__*/function () {
             positionY = currentPos.dy;
             momentum();
           }
+
+          _this2.zoom(_this2._state.zoomValue);
         }
       });
       imageSlider.init();
@@ -997,7 +1021,14 @@ var ImageViewer = /*#__PURE__*/function () {
           css(image, {
             left: "".concat(imgLeft, "px"),
             top: "".concat(imgTop, "px")
-          }); // this._moveHandler({ left: imgLeft, top: imgTop }, { l: left, t: top });
+          });
+          _this3._state.onMoveValues.snapSlider = position;
+
+          if (_this3._listeners.onMoveSnapSlider) {
+            _this3._listeners.onMoveSnapSlider(_this3._callbackData);
+          }
+
+          console.log("snap slider");
         }
       });
       snapSlider.init();
@@ -1231,9 +1262,9 @@ var ImageViewer = /*#__PURE__*/function () {
   }, {
     key: "_getImageCurrentDim",
     value: function _getImageCurrentDim() {
-      var _this$_state2 = this._state,
-          zoomValue = _this$_state2.zoomValue,
-          imageDim = _this$_state2.imageDim;
+      var _this$_state3 = this._state,
+          zoomValue = _this$_state3.zoomValue,
+          imageDim = _this$_state3.imageDim;
       return {
         w: imageDim.w * (zoomValue / 100),
         h: imageDim.h * (zoomValue / 100)
@@ -1418,60 +1449,95 @@ var ImageViewer = /*#__PURE__*/function () {
     }
   }, {
     key: "_zoomHandler",
-    value: function _zoomHandler(imageDimension, snapDimension) {
-      this._state.snapCurrentDim = snapDimension;
+    value: // ? -------------------------------------------------------
+
+    /**
+     * TODO - TEST ZOOM HANDLER EVENT
+     * @param {*} imageDimension
+     * @param {*} snapDimension
+     */
+    function _zoomHandler(imageDimension, zoomSliderLength) {
+      if (!imageDimension.height) {
+        return;
+      }
+
+      console.log("Zoom slider lenght", zoomSliderLength);
       this._state.imageCurrentDim = imageDimension;
+      this._state.zoomSliderLengthValue = zoomSliderLength;
 
       if (this._listeners.onMove) {
         this._listeners.onMove(this._callbackData);
       }
-    }
-  }, {
-    key: "_moveHandler",
-    value: function _moveHandler(imageDimension, snapDimension) {
-      this._state.snapCurrentDim = snapDimension;
-      this._state.imageCurrentDim = imageDimension;
-
-      if (this._listeners.onMove) {
-        this._listeners.onMove(this._callbackData);
-      }
-    }
-  }, {
-    key: "updateSnapHandle",
-    value: function updateSnapHandle(params) {// if (!params) {
-      //   return;
-      // }
-      // const { _elements } = this;
-      // const { snapHandle } = _elements;
-      // css(snapHandle, {
-      //   top: `${params.t}px`,
-      //   left: `${params.l}px`,
-      //   width: `${params.w}px`,
-      //   height: `${params.h}px`,
-      // });
     }
     /**
-     * @description On movement image
-     * @param {*} snap
-     * @param {*} img
+     * TODO - Update for Snap Slider
+     * @param {*} imageDimension
+     * @param {*} snapDimension
      */
 
   }, {
-    key: "updateSnapHandleAndImageMvt",
-    value: function updateSnapHandleAndImageMvt(dimensions) {// if (!dimensions) {
-      //   return;
-      // }
-      // const { _elements } = this;
-      // const { snapHandle, image } = _elements;
-      // css(snapHandle, {
-      //   left: `${dimensions.left}px`,
-      //   top: `${dimensions.top}px`,
-      // });
-      // css(image, {
-      //   left: `${dimensions.imgLeft}px`,
-      //   top: `${dimensions.imgTop}px`,
-      // });
+    key: "updateMoveImageSlider",
+    value:
+    /**
+     * TODO - Update for IMAGE SLIDER values
+     * @param {*} event
+     * @returns
+     */
+    function updateMoveImageSlider(event) {
+
+      if (!event) {
+        return;
+      }
+
+      var EventState = event.instance._state;
+      var snapSlider = this._sliders.snapSlider;
+      var _options = this._options,
+          _elements = this._elements,
+          _state = this._state;
+      this._state.imageCurrentDim = EventState.imageCurrentDim;
+      var perc, point;
+      perc = EventState.zoomValue; // * variable for snap handle image
+      // const newPos = {
+      //   dx: _state.onMoveValues?.snapSlider?.dx,
+      //   dy: _state.onMoveValues.snapSlider?.dy,
+      // };
+      // // * Try to update snap handle image
+      // console.log("snap slider: ", snapSlider);
+      // snapSlider.onMove(null, event.instance._state.onMoveValues.snapSlider);
+
+      var curPerc = _state.zoomValue,
+          imageDim = _state.imageDim,
+          containerDim = _state.containerDim,
+          zoomSliderLength = _state.zoomSliderLength;
+      var image = _elements.image,
+          zoomHandle = _elements.zoomHandle;
+      var maxZoom = _options.maxZoom;
+      perc = Math.round(Math.max(100, perc));
+      perc = Math.min(maxZoom, perc);
+      point = point || {
+        x: containerDim.w / 2,
+        y: containerDim.h / 2
+      };
+      var curLeft = parseFloat(css(image, "left"));
+      var curTop = parseFloat(css(image, "top")); // clear any panning frames
+
+      this._clearFrames();
+      var baseLeft = (containerDim.w - imageDim.w) / 2;
+      var baseTop = (containerDim.h - imageDim.h) / 2;
+      var baseRight = containerDim.w - baseLeft;
+      var baseBottom = containerDim.h - baseTop;
+
+
+      css(zoomHandle, {
+        left: "".concat((EventState.zoomValue - 100) * EventState.zoomSliderLengthValue / (_options.maxZoom - 100), "px")
+      });
     }
+  }, {
+    key: "updateMoveSnapSlider",
+    value: function updateMoveSnapSlider(event) {
+      return;
+    } // ? -----------------------------------------
+
   }, {
     key: "load",
     value: function load(imageSrc, hiResImageSrc) {
@@ -1562,7 +1628,9 @@ ImageViewer.defaults = {
     onImageLoaded: null,
     onZoomChange: null,
     onMove: null,
-    onSnapMove: null
+    onSnapMove: null,
+    onMoveSnapSlider: null,
+    onMoveImageSlider: null
   }
 };
 

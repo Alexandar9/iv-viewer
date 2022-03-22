@@ -79,6 +79,10 @@ class ImageViewer {
     // maintain current state
     this._state = {
       zoomValue: this._options.zoomValue,
+      onMoveValues: {
+        imageSlider: null,
+        snapSlider: null,
+      },
     };
 
     this._images = {
@@ -243,7 +247,9 @@ class ImageViewer {
       onMove: (e, position) => {
         const { snapImageDim } = this._state;
         const { snapSlider } = this._sliders;
+
         const imageCurrentDim = this._getImageCurrentDim();
+
         currentPos = position;
         const newPos = {
           dx: (-position.dx * snapImageDim.w) / imageCurrentDim.w,
@@ -252,13 +258,12 @@ class ImageViewer {
 
         snapSlider.onMove(e, newPos);
 
-        console.error("event: ", e);
-        console.error("newpos: ", newPos);
+        this._state.onMoveValues.imageSlider = newPos;
+        this._state.onMoveValues.snapSlider = { ...newPos };
 
-        this._moveHandler(
-          this._state.imageCurrentDim,
-          this._state.snapCurrentDim
-        );
+        if (this._listeners.onMoveImageSlider) {
+          this._listeners.onMoveImageSlider(this._callbackData);
+        }
       },
       onEnd: () => {
         const { snapImageDim } = this._state;
@@ -296,6 +301,8 @@ class ImageViewer {
 
           momentum();
         }
+
+        this.zoom(this._state.zoomValue);
       },
     });
 
@@ -357,7 +364,13 @@ class ImageViewer {
           top: `${imgTop}px`,
         });
 
-        // this._moveHandler({ left: imgLeft, top: imgTop }, { l: left, t: top });
+        this._state.onMoveValues.snapSlider = position;
+
+        if (this._listeners.onMoveSnapSlider) {
+          this._listeners.onMoveSnapSlider(this._callbackData);
+        }
+
+        console.log("snap slider");
       },
     });
 
@@ -893,26 +906,27 @@ class ImageViewer {
         top: `${newTop}px`,
       });
 
-      this._zoomHandler({
-        height: imgHeight,
-        width: imgWidth,
-        left: newLeft,
-        top: newTop,
-      });
+      // * Calling custom zoomHandler
+      // console.log(imgHeight, imgWidth, newLeft, newTop);
+      this._zoomHandler(
+        {
+          height: imgHeight,
+          width: imgWidth,
+          left: newLeft,
+          top: newTop,
+        },
+        zoomSliderLength
+      );
 
-      // this._state.snapCurrentDim = {
-      //   height: imgHeight,
-      //   width: imgWidth,
-      //   left: newLeft,
-      //   top: newTop,
-      // };
-
+      // * override imageCurrentDim
       // this._state.imageCurrentDim = {
       //   height: imgHeight,
       //   width: imgWidth,
       //   left: newLeft,
       //   top: newTop,
       // };
+
+      console.log("TICK ZOOM: ", tickZoom);
 
       this._state.zoomValue = tickZoom;
 
@@ -931,24 +945,6 @@ class ImageViewer {
 
     zoom();
   };
-
-  _zoomHandler(imageDimension, snapDimension) {
-    this._state.snapCurrentDim = snapDimension;
-    this._state.imageCurrentDim = imageDimension;
-
-    if (this._listeners.onMove) {
-      this._listeners.onMove(this._callbackData);
-    }
-  }
-
-  _moveHandler(imageDimension, snapDimension) {
-    this._state.snapCurrentDim = snapDimension;
-    this._state.imageCurrentDim = imageDimension;
-
-    if (this._listeners.onMove) {
-      this._listeners.onMove(this._callbackData);
-    }
-  }
 
   _clearFrames = () => {
     const { slideMomentumCheck, sliderMomentumFrame, zoomFrame } = this._frames;
@@ -988,23 +984,58 @@ class ImageViewer {
     };
   };
 
-  updateImage = (imageDimension, snapDimension) => {
-    // if (!imageDimension || !snapDimension) {
-    //   return;
-    // }
+  // ? -------------------------------------------------------
+  /**
+   * TODO - TEST ZOOM HANDLER EVENT
+   * @param {*} imageDimension
+   * @param {*} snapDimension
+   */
+  _zoomHandler(imageDimension, zoomSliderLength) {
+    if (!imageDimension.height) {
+      return;
+    }
 
-    const { imageCurrentDim } = this._state;
+    console.log("Zoom slider lenght", zoomSliderLength);
+    this._state.imageCurrentDim = imageDimension;
+    this._state.zoomSliderLengthValue = zoomSliderLength;
+
+    if (this._listeners.onMove) {
+      this._listeners.onMove(this._callbackData);
+    }
+  }
+
+  /**
+   * TODO - Update for Snap Slider
+   * @param {*} imageDimension
+   * @param {*} snapDimension
+   */
+  updateImage = (event) => {
+    if (!event) {
+      return;
+    }
+
+    this._state.imageCurrentDim = event.instance?._state?.imageCurrentDim;
+    this._state.zoomValue = event.instance?._state?.zoomValue;
+
+    const { _state: EventState } = event.instance;
+    const { _options } = event.instance;
+    const {
+      imageCurrentDim: EventImageCurrentDim,
+      snapHandleDim: EventSnapHandleDim,
+    } = EventState;
+
+    const { imageCurrentDim, snapHandleDim } = this._state;
     const { _elements } = this;
-    const { image, snapHandle } = _elements;
+    const { image, snapHandle, zoomHandle } = _elements;
 
     const snap = {
-      ...this._state.snapHandleDim,
-      ...snapDimension,
+      ...snapHandleDim,
+      ...EventSnapHandleDim,
     };
 
     const img = {
-      ...this._state.imageCurrentDim,
-      ...imageDimension,
+      ...imageCurrentDim,
+      ...EventImageCurrentDim,
     };
 
     css(image, {
@@ -1021,50 +1052,150 @@ class ImageViewer {
       top: `${snap.t}px`,
     });
 
-    if (imageCurrentDim) {
-      this._resizeSnapHandle(
-        imageCurrentDim.width,
-        imageCurrentDim.height,
-        imageCurrentDim.left,
-        imageCurrentDim.top
-      );
-    }
+    // if (imageCurrentDim) {
+    //   this._resizeSnapHandle(
+    //     imageCurrentDim.width,
+    //     imageCurrentDim.height,
+    //     imageCurrentDim.left,
+    //     imageCurrentDim.top
+    //   );
+    // }
+
+    css(zoomHandle, {
+      left: `${
+        ((EventState.zoomValue - 100) * EventState.zoomSliderLengthValue) /
+        (_options.maxZoom - 100)
+      }px`,
+    });
   };
 
-  updateSnapHandle(params) {
-    // if (!params) {
-    //   return;
-    // }
-    // const { _elements } = this;
-    // const { snapHandle } = _elements;
-    // css(snapHandle, {
-    //   top: `${params.t}px`,
-    //   left: `${params.l}px`,
-    //   width: `${params.w}px`,
-    //   height: `${params.h}px`,
-    // });
+  /**
+   * TODO - Update for IMAGE SLIDER values
+   * @param {*} event
+   * @returns
+   */
+  updateMoveImageSlider(event) {
+    if (!event) {
+      return;
+    }
+
+    const { _state: EventState } = event.instance;
+    const { snapSlider } = this._sliders;
+    const { _options, _elements, _state } = this;
+    this._state.imageCurrentDim = EventState.imageCurrentDim;
+    let perc, point;
+    perc = EventState.zoomValue;
+
+    // * variable for snap handle image
+    // const newPos = {
+    //   dx: _state.onMoveValues?.snapSlider?.dx,
+    //   dy: _state.onMoveValues.snapSlider?.dy,
+    // };
+    // // * Try to update snap handle image
+    // console.log("snap slider: ", snapSlider);
+    // snapSlider.onMove(null, event.instance._state.onMoveValues.snapSlider);
+
+    const {
+      zoomValue: curPerc,
+      imageDim,
+      containerDim,
+      zoomSliderLength,
+    } = _state;
+    const { image, zoomHandle } = _elements;
+    const { maxZoom } = _options;
+
+    perc = Math.round(Math.max(100, perc));
+    perc = Math.min(maxZoom, perc);
+
+    point = point || {
+      x: containerDim.w / 2,
+      y: containerDim.h / 2,
+    };
+
+    const curLeft = parseFloat(css(image, "left"));
+    const curTop = parseFloat(css(image, "top"));
+
+    // clear any panning frames
+    this._clearFrames();
+
+    let step = 0;
+
+    const baseLeft = (containerDim.w - imageDim.w) / 2;
+    const baseTop = (containerDim.h - imageDim.h) / 2;
+    const baseRight = containerDim.w - baseLeft;
+    const baseBottom = containerDim.h - baseTop;
+
+    const zoom = () => {
+      step++;
+
+      if (step < 16) {
+        this._frames.zoomFrame = requestAnimationFrame(zoom);
+      }
+
+      const tickZoom = easeOutQuart(step, curPerc, perc - curPerc, 16);
+      const ratio = tickZoom / curPerc;
+
+      const imgWidth = (imageDim.w * tickZoom) / 100;
+      const imgHeight = (imageDim.h * tickZoom) / 100;
+
+      let newLeft = -((point.x - curLeft) * ratio - point.x);
+      let newTop = -((point.y - curTop) * ratio - point.y);
+
+      // fix for left and top
+      newLeft = Math.min(newLeft, baseLeft);
+      newTop = Math.min(newTop, baseTop);
+
+      // fix for right and bottom
+      if (newLeft + imgWidth < baseRight) {
+        newLeft = baseRight - imgWidth; // newLeft - (newLeft + imgWidth - baseRight)
+      }
+
+      if (newTop + imgHeight < baseBottom) {
+        newTop = baseBottom - imgHeight; // newTop + (newTop + imgHeight - baseBottom)
+      }
+
+      css(image, {
+        height: `${imgHeight}px`,
+        width: `${imgWidth}px`,
+        left: `${newLeft}px`,
+        top: `${newTop}px`,
+      });
+
+      this._state.zoomValue = tickZoom;
+
+      this._resizeSnapHandle(imgWidth, imgHeight, newLeft, newTop);
+
+      // update zoom handle position
+      css(zoomHandle, {
+        left: `${((tickZoom - 100) * zoomSliderLength) / (maxZoom - 100)}px`,
+      });
+
+      console.log(
+        "slider poz:",
+        ((tickZoom - 100) * zoomSliderLength) / (maxZoom - 100)
+      );
+
+      // dispatch zoom changed event
+      if (this._listeners.onZoomChange) {
+        this._listeners.onZoomChange(this._callbackData);
+      }
+    };
+
+    // zoom();
+
+    css(zoomHandle, {
+      left: `${
+        ((EventState.zoomValue - 100) * EventState.zoomSliderLengthValue) /
+        (_options.maxZoom - 100)
+      }px`,
+    });
   }
 
-  /**
-   * @description On movement image
-   * @param {*} snap
-   * @param {*} img
-   */
-  updateSnapHandleAndImageMvt(dimensions) {
-    // if (!dimensions) {
-    //   return;
-    // }
-    // const { _elements } = this;
-    // const { snapHandle, image } = _elements;
-    // css(snapHandle, {
-    //   left: `${dimensions.left}px`,
-    //   top: `${dimensions.top}px`,
-    // });
-    // css(image, {
-    //   left: `${dimensions.imgLeft}px`,
-    //   top: `${dimensions.imgTop}px`,
-    // });
+  updateMoveSnapSlider(event) {
+    return;
   }
+
+  // ? -----------------------------------------
 
   showSnapView = (noTimeout) => {
     const { snapViewVisible, zoomValue, loaded } = this._state;
@@ -1174,6 +1305,8 @@ ImageViewer.defaults = {
     onZoomChange: null,
     onMove: null,
     onSnapMove: null,
+    onMoveSnapSlider: null,
+    onMoveImageSlider: null,
   },
 };
 
